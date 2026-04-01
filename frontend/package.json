@@ -1,0 +1,28 @@
+{
+  "name": "rabbit-hole-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "three": "^0.163.0",
+    "3d-force-graph": "^1.73.0",
+    "zustand": "^4.5.2",
+    "framer-motion": "^11.2.0",
+    "tailwindcss": "^3.4.3",
+    "postcss": "^8",
+    "autoprefixer": "^10"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/react": "^18",
+    "@types/node": "^20",
+    "@types/three": "^0.163.0"
+  }
+}
