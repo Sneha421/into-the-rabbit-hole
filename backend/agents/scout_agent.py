@@ -34,7 +34,7 @@ PAGE_GOAL = (
     "Ignore navigation, ads, footers, and sidebars. "
     "Return ONLY a JSON object with keys: "
     "title (string — the page headline), "
-    "summary (string — a 3 to 5 sentence summary of the key ideas, arguments, or facts on this page, written in your own words)."
+    "summary (string — a 3 to 5 sentence summary of the key ideas, arguments, or facts on this page, written in your own words). Not more than 90 words."
 )
 
 

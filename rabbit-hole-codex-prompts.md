@@ -183,35 +183,7 @@ print("RankerAgent OK, scores:", list(scores.keys()))
 
 ---
 
-## PROMPT 6 — STUDY AGENT
-
-```
-We are building Rabbit Hole Discoverer. Steps 0–5 are complete.
-
-Create the Study Agent and its utility module as specified in Step 6 of AGENTS.md.
-
-File 1: `backend/utils/__init__.py` — empty file.
-File 2: `backend/utils/chunker.py` — implement chunk_text and parse_file from Step 6.1.
-  - chunk_text splits on whitespace, sliding window with overlap.
-  - parse_file handles .pdf via PyMuPDF (fitz) and falls back to utf-8 decode for .txt/.md.
-
-File 3: `backend/agents/study_agent.py` — implement the full StudyAgent class from Step 6.2.
-  - Uses chromadb.Client() (in-memory) — no persistence setup needed for the hackathon.
-  - _embed calls text-embedding-3-small in batches of 100.
-  - ingest: parse → chunk → embed → add to Chroma collection.
-  - link_to_graph: embed every node label, query Chroma, mark has_user_notes=True when
-    cosine distance < 0.4.
-  - ask: embed question, retrieve top 5 chunks, call gpt-4o with a strict RAG prompt,
-    return {"answer": ..., "source_chunks": [...]}.
-
-Wrap every OpenAI call and every Chroma call in try/except.
-
-SKILL TO CREATE: After the hackathon, consider abstracting the embedding + Chroma query
-pattern into a reusable `backend/utils/rag_utils.py` skill with:
-  - embed_texts(texts: list[str]) -> list[list[float]]
-  - query_collection(col, embedding, n_results=5) -> list[str]
-This will clean up StudyAgent and make it easy to swap embedding providers.
-```
+<!-- PROMPT 6 — STUDY AGENT removed: Study Mode deprecated -->
 
 ---
 
@@ -415,51 +387,7 @@ Typography rules from BRAND_GUIDELINES.md:
 
 ---
 
-## PROMPT 12 — STUDY MODE DRAWER
-
-```
-We are building Rabbit Hole Discoverer. All other components are complete.
-Read BRAND_GUIDELINES.md — specifically the Study Mode Drawer and STUDY MODE CSS sections — before writing this file.
-
-Create `frontend/components/StudyMode.tsx`
-
-The component is a bottom drawer that slides up from the bottom of the graph page.
-Height: 340px. Triggered by a 📓 button (add this to the graph page — see Prompt 13).
-
-BEHAVIOUR:
-- When drawer opens: add class "study-open" to the <main> element
-  (this triggers the CSS hue-rotate(15deg) sepia(0.08) background shift)
-- When drawer closes: remove "study-open" from <main>
-
-DRAWER SECTIONS (stacked vertically, top to bottom):
-
-Section 1 — Upload Zone:
-  - Dashed border using var(--border-active)
-  - Label text: "Drop your notes into the void" (exact microcopy from BRAND_GUIDELINES.md)
-  - Accepts .pdf, .txt, .md via drag-and-drop and click-to-browse (input type="file" hidden)
-  - On drop/select: POST file as FormData to `/api/study/upload/{sessionId}`
-  - On success: show "✓ {chunks_ingested} chunks ingested · {nodes_linked} nodes linked"
-  - On error: show "Lost in the void. Trying another path…" (exact microcopy)
-  - Loading state: show agent status text, never a spinner alone
-
-Section 2 — Q&A Input:
-  - Single-line text input, placeholder: "What do your notes say about…"
-  - "Ask" button to the right
-  - On submit: POST to `/api/study/ask` with {question, session_id}
-  - Display answer in .study-answer styled div (JetBrains Mono, amber left border, 2px)
-
-Section 3 — Linked Nodes:
-  - Filter graphStore nodes where has_user_notes === true
-  - Show each as a small pill with an amber pulsing dot and the node label
-  - If none: show "No notes linked yet"
-
-ANIMATION: Drawer uses framer-motion slide up from y=340 to y=0, 300ms ease-out.
-
-HOOK TO CREATE — abstract the file upload + ingest call into a reusable hook:
-// useStudyUpload(sessionId: string)
-// Returns: { uploadFile, ingesting, result, error }
-// This decouples the upload logic from the drawer UI and makes it testable.
-```
+<!-- PROMPT 12 — STUDY MODE removed -->
 
 ---
 

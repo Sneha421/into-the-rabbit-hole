@@ -25,8 +25,15 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
   const status = useGraphStore((state) => state.status);
   const selectedNode = useGraphStore((state) => state.selectedNode);
   const selectNode = useGraphStore((state) => state.selectNode);
+  const visited = useGraphStore((s) => s.visited);
+  const markVisited = useGraphStore((s) => (s as any).markVisited);
+  const visitedRef = useRef<Record<string, boolean>>(visited ?? {});
   const [initError, setInitError] = useState<string>("");
   const prevNodeCountRef = useRef(0);
+
+  // Keep visitedRef current so closures inside initGraph always read live data
+  useEffect(() => { visitedRef.current = visited ?? {}; }, [visited]);
+
   const nodeList = Array.from(nodes.values());
   const seedOrPrimaryNode = nodeList[0] ?? null;
   const discoveryFailed = status.startsWith("No pages discovered for ");
@@ -50,6 +57,14 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
 
         mountRef.current.innerHTML = "";
 
+        // Shared geometry + base material for efficient spherical nodes.
+        const sharedGeometry = new THREE.SphereGeometry(1, 24, 24);
+        // Use an unlit material so spheres render consistently without scene lights.
+        const baseMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+        });
+
         const nodeSphere = (node: any) => {
           const color =
             CLUSTER_COLORS[node.cluster_id % 6] ??
@@ -57,16 +72,53 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
           const radius = node.is_seed
             ? 5.5
             : 1.8 + Math.min(3.5, (node.rabbit_hole_score ?? 0) * 8);
-          
-          // Only render a colored sphere for nodes — remove the grey "nameplate" sprite.
-          const geometry = new THREE.SphereGeometry(radius, 32, 32);
-          const material = new THREE.MeshBasicMaterial({
-            color,
-            transparent: true,
-            opacity: node.is_seed ? 1.0 : 0.95,
-          });
-          const sphere = new THREE.Mesh(geometry, material);
+
+          // Clone base material so each node can have its own color and opacity.
+          const material = baseMaterial.clone();
+          // If node has been visited, desaturate to a grey color
+          const isVisited = Boolean(visitedRef.current && visitedRef.current[node.id]);
+          material.color = new THREE.Color(isVisited ? "#6b7280" : color);
+          material.transparent = true;
+          material.opacity = node.is_seed ? 1.0 : 0.98;
+
+          const sphere = new THREE.Mesh(sharedGeometry, material);
+          sphere.scale.set(radius, radius, radius);
+          // attach node data for potential interactions
+          sphere.userData = node;
           return sphere;
+        };
+
+        // Utility: recursively update any Mesh material color inside an Object3D
+        const updateObjectMaterial = (obj: any, isVisitedMap: Record<string, boolean>) => {
+          if (!obj) return;
+          try {
+            if (obj.material) {
+              const nid = obj.userData?.id;
+              if (nid) {
+                const isVisited = Boolean(isVisitedMap && isVisitedMap[nid]);
+                const cluster = obj.userData?.cluster_id ?? 0;
+                const originalColor = CLUSTER_COLORS[cluster % 6] ?? (obj.userData?.is_seed ? "#9b4dff" : "#8ff3e1");
+                const targetColor = isVisited ? "#6b7280" : originalColor;
+                try { obj.material.color.set(targetColor); } catch (e) {}
+                obj.material.opacity = obj.userData?.is_seed ? 1.0 : (isVisited ? 0.7 : 0.98);
+                obj.material.needsUpdate = true;
+              }
+            }
+            if (obj.children && obj.children.length) {
+              obj.children.forEach((c: any) => updateObjectMaterial(c, isVisitedMap));
+            }
+          } catch (e) {
+            // ignore per-mesh errors
+          }
+        };
+
+        const updateVisitedMaterials = () => {
+          try {
+            const scene = graph.scene();
+            scene.children.forEach((child: any) => updateObjectMaterial(child, visitedRef.current));
+          } catch (e) {
+            // ignore
+          }
         };
 
         const graph = (ForceGraph3D as any)()(mountRef.current)
@@ -79,10 +131,19 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
           .linkDirectionalParticles(0)
           .backgroundColor("#0b0f19")
           .showNavInfo(false)
-          .onNodeClick((node: any) => selectNode(node))
+          .onNodeClick((node: any) => {
+            // Mark as visited immediately so the node greys out as soon as it's clicked
+            try { (useGraphStore.getState() as any).markVisited?.(node.id); } catch (e) {}
+            selectNode(node);
+            // Refresh node objects so nodeSphere re-runs with updated visitedRef
+            try { graph.refresh(); } catch (e) {}
+          })
           .onNodeRightClick(() => {
             // TODO: add a node context menu for advanced graph actions.
           });
+
+        // No scene lights — nodes use MeshBasicMaterial (unlit) and will appear
+        // as solid, true 3D spheres from all angles while staying visually consistent.
 
         resizeGraph = () => {
           if (!mountRef.current || !fgRef.current) {
@@ -100,6 +161,8 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
           nodes: Array.from(currentNodes.values()),
           links: currentEdges.map((edge) => ({ ...edge })),
         });
+        // ensure visited materials reflect current visited set on init
+        updateVisitedMaterials();
         resizeGraph();
         window.addEventListener("resize", resizeGraph);
 
@@ -160,6 +223,12 @@ export default function GraphCanvas({ sessionId }: GraphCanvasProps) {
     }
     prevNodeCountRef.current = nodes.size;
   }, [nodes, edges]);
+
+  // When visited changes, refresh node 3D objects so nodeSphere re-runs with latest visitedRef
+  useEffect(() => {
+    if (!fgRef.current) return;
+    try { fgRef.current.refresh(); } catch (e) {}
+  }, [visited]);
 
   return (
     <div className="graph-black-surface relative h-full w-full overflow-hidden">

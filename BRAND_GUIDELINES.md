@@ -226,7 +226,6 @@ Add all of these to `frontend/app/globals.css`.
 | Node hover card dismiss | 100ms    | ease-in |
 | Panel slide in/out      | 300ms    | cubic-bezier(0.4, 0, 0.2, 1) |
 | Graph layout reflow     | 800ms    | spring |
-| Study mode open/close   | 500ms    | cubic-bezier(0.4, 0, 0.2, 1) |
 | Status pill cycle       | 200ms    | ease-out |
 | Page transition         | 400ms    | ease-in-out |
 
@@ -330,63 +329,7 @@ Contains:
   ● PageRank  ● Betweenness  ● Eigenvector  ● Louvain  ● HITS  ● Dijkstra
 - "Layout" toggle: Force-Directed | Radial (switching calls `fgRef.current.dagMode(...)`)
 
-### Study Mode Drawer
-
-Triggered by a 📓 button at bottom-right of graph page.
-Slides up from bottom (height 340px).
-
-When drawer opens:
-- Add class `study-open` to `<main>` element
-- Apply CSS filter: `hue-rotate(15deg) sepia(0.08)` to the canvas background
-- This creates the warm amber reading-lamp shift from the cold deep-space palette
-
-Drawer contents:
-1. **Upload Zone** — dashed border `var(--border-active)`, text: "Drop your notes into the void"
-   Accepts: .pdf, .txt, .md
-   On drop: POST to `/api/study/upload/{sessionId}` with FormData
-   On success: show "✓ {chunks} chunks ingested · {nodes} nodes linked"
-
-2. **Q&A Input** — single-line input + "Ask" button
-   On submit: POST to `/api/study/ask` with `{question, session_id}`
-   Display response in monospace text below, with a thin `var(--amber)` left border
-
-3. **Linked Nodes** — amber pulsing dot next to nodes that matched notes
-   (These are already marked in the graph via `has_user_notes` — just filter and list labels)
-
----
-
-## STUDY MODE CSS
-
-```css
-/* Applied to <main> when study drawer is open */
-.study-open .graph-canvas-bg {
-  background:
-    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.2) 0%, transparent 100%),
-    radial-gradient(ellipse at 30% 70%, rgba(255, 132, 66, 0.06) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 30%, rgba(245, 200, 66, 0.04) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, #0d0800 0%, #03010a 50%, #000000 100%);
-  transition: background 600ms ease-in-out;
-}
-
-/* Note-linked node indicator (applied to NodeHoverCard when has_user_notes) */
-.note-linked-badge {
-  background: rgba(255, 132, 66, 0.15);
-  color: var(--amber);
-  border: 1px solid rgba(255, 132, 66, 0.3);
-  animation: node-breathe 3s ease-in-out infinite;
-}
-
-/* Study mode Q&A answer block */
-.study-answer {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: var(--text-secondary);
-  border-left: 2px solid var(--amber);
-  padding-left: 12px;
-  margin-top: 8px;
-  white-space: pre-wrap;
-}
-```
+<!-- Study Mode removed: study UI and related CSS intentionally omitted -->
 
 ---
 
@@ -406,11 +349,8 @@ Drawer contents:
 | Loading state | "Scout agent is hunting: [topic]" | "Loading…" |
 | Graph complete | "Rabbit hole complete. Click any node to go deeper." | "Done." |
 | Expand button | "Fall Deeper →" | "Load More" |
-| Study upload zone | "Drop your notes into the void" | "Upload File" |
 | Upload success | "✓ 42 chunks ingested · 7 nodes linked" | "Upload complete" |
-| Study Q&A placeholder | "What do your notes say about…" | "Search notes" |
 | Error state | "Lost in the void. Trying another path…" | "Error occurred" |
-| Node has notes badge | "📓 In your notes" | "User annotation" |
 | PageRank tooltip | "Gravitational pull — how much of the universe orbits this node" | "PageRank score" |
 | Betweenness tooltip | "Bridge score — remove this node and clusters disconnect" | "Betweenness centrality" |
 | Empty graph | "No rabbit holes found yet. Try going deeper." | "No results" |

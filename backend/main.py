@@ -13,8 +13,7 @@ load_dotenv()
 
 from orchestrator import RabbitHoleOrchestrator, SESSIONS
 from agents.ranker_agent import RankerAgent
-from agents.study_agent import StudyAgent
-from models.api_models import DiscoverRequest, ExpandRequest, StudyAskRequest, DeepenRequest
+from models.api_models import DiscoverRequest, ExpandRequest, DeepenRequest
 
 app = FastAPI(title="Rabbit Hole API")
 app.add_middleware(
@@ -128,7 +127,7 @@ async def create_new_session():
         await broadcast(session_id, payload)
 
     orch = RabbitHoleOrchestrator(session_id, _bcast)
-    SESSION_STATUS[session_id] = "Ready for study notes."
+    SESSION_STATUS[session_id] = "Ready."
     return {"session_id": session_id}
 
 
@@ -215,21 +214,4 @@ async def get_path(session_id: str, source: str, target: str):
     return {"path": path}
 
 
-@app.post("/api/study/upload/{session_id}")
-async def upload_notes(session_id: str, file: UploadFile = File(...)):
-    print(f"[API] /api/study/upload session_id={session_id} filename={file.filename!r}")
-    graph = SESSIONS.get(session_id)
-    if not graph:
-        return {"error": "session not found"}
-    study = StudyAgent(session_id)
-    content = await file.read()
-    result = await study.ingest(content, file.filename or "notes.txt")
-    links = await study.link_to_graph(graph)
-    return {**result, "nodes_linked": links}
-
-
-@app.post("/api/study/ask")
-async def study_ask(req: StudyAskRequest):
-    print(f"[API] /api/study/ask session_id={req.session_id} question={req.question!r}")
-    study = StudyAgent(req.session_id)
-    return await study.ask(req.question)
+# Study mode endpoints removed.

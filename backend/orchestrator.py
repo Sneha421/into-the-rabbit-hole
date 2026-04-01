@@ -9,7 +9,6 @@ from graph.graph_store import GraphStore
 from agents.scout_agent import ScoutAgent
 from agents.analyst_agent import AnalystAgent
 from agents.ranker_agent import RankerAgent
-from agents.study_agent import StudyAgent
 from models.graph_models import Edge, EdgeType, Node, NodeType, GraphDelta
 
 # Global session registry. main.py reads from this dict.
@@ -26,7 +25,6 @@ class RabbitHoleOrchestrator:
         self.scout = ScoutAgent()
         self.analyst = AnalystAgent()
         self.ranker = RankerAgent()
-        self.study = StudyAgent(session_id)
         SESSIONS[session_id] = self.graph
 
     async def _status(self, msg: str) -> None:
@@ -62,9 +60,7 @@ class RabbitHoleOrchestrator:
             parsed = urlparse(source_url)
             label = page.get("title") or parsed.netloc or "Web source"
             content = str(page.get("content", "")).strip()
-            summary = (
-                content[:220].rsplit(" ", 1)[0] if len(content) > 220 else content
-            ) or f"Source page captured from {parsed.netloc or 'the live web'}."
+            summary = content or f"Source page captured from {parsed.netloc or 'the live web'}."
 
             nodes.append(
                 Node(

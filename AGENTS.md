@@ -80,7 +80,6 @@ rabbit-hole/
 │   │   ├── scout_agent.py
 │   │   ├── analyst_agent.py
 │   │   ├── ranker_agent.py
-│   │   └── study_agent.py
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── graph_models.py
@@ -90,7 +89,6 @@ rabbit-hole/
 │   │   └── graph_store.py
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   └── chunker.py
 │   └── requirements.txt
 ├── frontend/
 │   ├── app/
@@ -105,7 +103,6 @@ rabbit-hole/
 │   │   ├── SearchBar.tsx
 │   │   ├── Sidebar.tsx
 │   │   ├── StatusPill.tsx
-│   │   └── StudyMode.tsx
 │   ├── lib/
 │   │   ├── graphStore.ts
 │   │   ├── types.ts
@@ -790,129 +787,7 @@ class RankerAgent:
 
 ---
 
-## STEP 6 — STUDY AGENT
-
-RAG over user-uploaded notes. Embeds chunks, stores in ChromaDB,
-links matching chunks to graph nodes, answers questions.
-
-### 6.1 Create `backend/utils/chunker.py`
-
-```python
-def chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> list[str]:
-    words = text.split()
-    chunks, i = [], 0
-    while i < len(words):
-        chunks.append(" ".join(words[i: i + chunk_size]))
-        i += chunk_size - overlap
-    return [c for c in chunks if c.strip()]
-
-
-def parse_file(file_bytes: bytes, filename: str) -> str:
-    if filename.lower().endswith(".pdf"):
-        import fitz  # PyMuPDF
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        return "\n".join(page.get_text() for page in doc)
-    return file_bytes.decode("utf-8", errors="ignore")
-```
-
-### 6.2 Create `backend/agents/study_agent.py`
-
-```python
-from __future__ import annotations
-import os
-import chromadb
-from openai import AsyncOpenAI
-from utils.chunker import parse_file, chunk_text
-
-oai = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
-_chroma = chromadb.Client()
-
-
-class StudyAgent:
-    def __init__(self, session_id: str):
-        self.session_id = session_id
-        self.col = _chroma.get_or_create_collection(f"notes_{session_id}")
-
-    async def _embed(self, texts: list[str]) -> list[list[float]]:
-        resp = await oai.embeddings.create(
-            model="text-embedding-3-small", input=texts
-        )
-        return [item.embedding for item in resp.data]
-
-    async def ingest(self, file_bytes: bytes, filename: str) -> dict:
-        text = parse_file(file_bytes, filename)
-        chunks = chunk_text(text)
-        if not chunks:
-            return {"chunks_ingested": 0}
-
-        # Embed in batches of 100 to stay within API limits
-        all_embeddings: list[list[float]] = []
-        for i in range(0, len(chunks), 100):
-            batch = chunks[i: i + 100]
-            all_embeddings.extend(await self._embed(batch))
-
-        ids = [f"{filename}_{i}" for i in range(len(chunks))]
-        self.col.add(documents=chunks, embeddings=all_embeddings, ids=ids)
-        return {"chunks_ingested": len(chunks)}
-
-    async def link_to_graph(self, graph_store) -> int:
-        """
-        For every graph node, query ChromaDB for matching note chunks.
-        If similarity threshold met, mark node.has_user_notes = True.
-        Returns count of nodes linked.
-        """
-        linked = 0
-        node_items = [
-            (nid, data["label"])
-            for nid, data in graph_store.G.nodes(data=True)
-        ]
-        if not node_items:
-            return 0
-
-        labels = [label for _, label in node_items]
-        embeddings = await self._embed(labels)
-
-        for (node_id, _), emb in zip(node_items, embeddings):
-            try:
-                results = self.col.query(query_embeddings=[emb], n_results=2)
-                distances = results["distances"][0]
-                if distances and distances[0] < 0.4:  # cosine distance threshold
-                    graph_store.G.nodes[node_id]["has_user_notes"] = True
-                    linked += 1
-            except Exception:
-                pass
-
-        return linked
-
-    async def ask(self, question: str) -> dict:
-        q_emb = (await self._embed([question]))[0]
-        try:
-            results = self.col.query(query_embeddings=[q_emb], n_results=5)
-            chunks = results["documents"][0]
-        except Exception:
-            return {"answer": "No notes found.", "source_chunks": []}
-
-        context = "\n\n".join(chunks)
-        resp = await oai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Answer the question using ONLY the provided notes. "
-                               "Be concise. If not in the notes, say so.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Notes:\n{context}\n\nQuestion: {question}",
-                },
-            ],
-            max_tokens=400,
-        )
-        return {
-            "answer": resp.choices[0].message.content,
-            "source_chunks": chunks,
-        }
-```
+<!-- STEP 6 — STUDY AGENT removed: study-related tooling (chunker, study agent) is deprecated -->
 
 ---
 
@@ -932,7 +807,6 @@ from graph.graph_store import GraphStore
 from agents.scout_agent import ScoutAgent
 from agents.analyst_agent import AnalystAgent
 from agents.ranker_agent import RankerAgent
-from agents.study_agent import StudyAgent
 from models.graph_models import Node, NodeType, GraphDelta
 
 # Global session registry. main.py reads from this dict.

@@ -50,9 +50,6 @@ body {
   background: #02050b;
 }
 
-body.study-mode {
-  filter: hue-rotate(8deg) sepia(0.06);
-}
 
 * {
   box-sizing: border-box;
@@ -108,32 +105,7 @@ body.study-mode {
   100% { background-position: 0% 50%; }
 }
 
-.study-open .graph-canvas-bg {
-  background:
-    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.2) 0%, transparent 100%),
-    radial-gradient(ellipse at 30% 70%, rgba(255, 132, 66, 0.06) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 30%, rgba(245, 200, 66, 0.04) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, #0d0800 0%, #03010a 50%, #000000 100%);
-  transition: background 600ms ease-in-out;
-  filter: hue-rotate(15deg) sepia(0.08);
-}
-
-.note-linked-badge {
-  background: rgba(255, 132, 66, 0.15);
-  color: var(--amber);
-  border: 1px solid rgba(255, 132, 66, 0.3);
-  animation: node-breathe 3s ease-in-out infinite;
-}
-
-.study-answer {
-  font-family: 'JetBrains Mono', 'IBM Plex Sans';
-  font-size: 13px;
-  color: var(--text-secondary);
-  border-left: 2px solid var(--amber);
-  padding-left: 12px;
-  margin-top: 8px;
-  white-space: pre-wrap;
-}
+/* Study-related styles removed. */
 
 .graph-black-surface::before {
   content: "";

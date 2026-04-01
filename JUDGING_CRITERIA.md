@@ -253,22 +253,11 @@ Click "Fall Deeper →".
 
 Watch the graph grow.
 
-### Minute 2:30–3:30 — Study Mode (Utility argument)
+### Minute 2:30–3:30 — Additional depth example
 
-Open Study Mode drawer.
-
-> "Now I'm a film studies student. I've got three weeks of notes."
-
-Drag in a PDF.
-
-> "✓ 42 chunks ingested · 7 nodes linked."
-
-Point at amber nodes now glowing in the graph.
-
-> "Those amber pulses are nodes that appear in my notes. My knowledge, mapped
-> onto the web's knowledge. RAG scoped to a graph, not a flat document."
-
-Type a question: "What does Bong say about capitalism in his early work?"
+Show how a focused follow-up query or a targeted expansion produces deeper, more
+connected nodes for a topic. Use a second "Fall Deeper →" expansion and highlight
+how the cluster composition evolves.
 
 > "The answer comes from my notes, grounded in the graph. Your knowledge plus
 > the web's knowledge. No hallucinations — it can only answer from what's here."
