@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { useGraphStore } from "./graphStore";
 import type { WsMessage } from "./types";
 
-const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "//127.0.0.1:8000";
+const WS_BASE =
+  process.env.NEXT_PUBLIC_WS_URL ?? (API_BASE.startsWith("//") ? `ws:${API_BASE}` : API_BASE.replace(/^http/, "ws"));
 
 export function useGraphSocket(sessionId: string) {
   const applyDelta = useGraphStore((state) => state.applyDelta);

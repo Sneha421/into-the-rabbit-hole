@@ -12,7 +12,7 @@ import type { GraphEdge, GraphNode } from "../../../lib/types";
 import { useGraphSocket } from "../../../lib/websocket";
 
 const GraphCanvasNoSSR = dynamic(() => import("../../../components/GraphCanvas"), { ssr: false });
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "//127.0.0.1:8000";
 
 export default function GraphPage() {
   const { session } = useParams<{ session: string }>();
@@ -87,7 +87,7 @@ export default function GraphPage() {
         return (payload.nodes ?? []).length > 1 || (payload.edges ?? []).length > 0;
       } catch {
         if (!cancelled && attempts >= 5) {
-          const message = "The frontend could not reach the graph API on 127.0.0.1:8000.";
+          const message = `The frontend could not reach the graph API (${API_BASE}).`;
           setFatalMessage(message);
           setStatus(message);
           setInitialLoadComplete(true);

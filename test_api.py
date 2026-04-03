@@ -1,18 +1,21 @@
 import asyncio
 import json
+import os
 import httpx
+
+API_BASE = os.environ.get("NEXT_PUBLIC_API_URL", "http://127.0.0.1:8000")
 
 async def test():
     async with httpx.AsyncClient(timeout=120) as client:
         # Start discovery
-        r1 = await client.post("http://127.0.0.1:8000/api/discover", json={"topic": "David Fincher", "max_depth": 0})
+        r1 = await client.post(f"{API_BASE}/api/discover", json={"topic": "David Fincher", "max_depth": 0})
         sess = r1.json().get("session_id")
         print(f"Session: {sess}")
         
         # Poll for completion
         data = {}
         for _ in range(30):
-            r2 = await client.get(f"http://127.0.0.1:8000/api/graph/{sess}")
+            r2 = await client.get(f"{API_BASE}/api/graph/{sess}")
             data = r2.json()
             status = data.get("status", "")
             print(f"Status: {status} | Nodes: {len(data.get('nodes', []))} | Edges: {len(data.get('edges', []))}")
