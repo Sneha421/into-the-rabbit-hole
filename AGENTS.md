@@ -1121,7 +1121,7 @@ export const useGraphStore = create<Store>((set) => ({
 import { useEffect } from "react";
 import { useGraphStore } from "./graphStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.PUBLIC_URL || "http://localhost:8000";
 const WS_BASE = API_BASE.replace(/^http/, "ws");
 
 export function useGraphSocket(sessionId: string) {
@@ -1295,7 +1295,7 @@ const CLUSTER_COLORS: Record<number, string> = {
   3: "#00c9a7", 4: "#ff8c42", 5: "#4d7cff",
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL || process.env.PUBLIC_URL || "http://localhost:8000";
 
 export default function NodeHoverCard() {
   const { selectedNode, sessionId, selectNode } = useGraphStore();

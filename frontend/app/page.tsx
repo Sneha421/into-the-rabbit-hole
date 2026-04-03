@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useGraphStore } from "../lib/graphStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+const API_BASE = process.env.PUBLIC_URL ?? "http://127.0.0.1:8000";
 const PLACEHOLDERS = [
   "a film…",
   "a true crime case…",

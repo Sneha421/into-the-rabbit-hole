@@ -244,7 +244,7 @@ After creating, start the server:
   cd backend && uvicorn main:app --reload --port 8000
 
 Verify it starts without import errors. Test with:
-  curl -X POST http://localhost:8000/api/discover \
+  curl -X POST $PUBLIC_URL/api/discover \
     -H "Content-Type: application/json" \
     -d '{"topic":"test","max_depth":1}'
 
@@ -275,7 +275,7 @@ File 2: `frontend/lib/graphStore.ts`
 
 File 3: `frontend/lib/websocket.ts`
   - useGraphSocket(sessionId) hook
-  - Connects to ws://localhost:8000/ws/{sessionId} (use NEXT_PUBLIC_WS_URL env var with fallback)
+  - Connects to ws://$PUBLIC_URL/ws/{sessionId} (use NEXT_PUBLIC_WS_URL or PUBLIC_URL env var with fallback)
   - On message: parse JSON, route by type to graphStore actions
   - Reconnects on close with 2-second delay (max 5 retries)
   - Sends a "ping" string every 30 seconds to keep the connection alive
@@ -374,7 +374,7 @@ FILE 2: `frontend/components/NodeHoverCard.tsx`
   - 📓 button: only rendered when selectedNode.has_user_notes === true
   - ✕ button: calls graphStore.selectNode(null)
   - Entry animation: scale 0.95 → 1.0, opacity 0 → 1, 150ms ease-out (framer-motion)
-  - API base URL from: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+  - API base URL from: process.env.NEXT_PUBLIC_API_URL ?? process.env.PUBLIC_URL ?? "http://localhost:8000"
   - PR score displayed in JetBrains Mono text-xs
 
 Typography rules from BRAND_GUIDELINES.md:
@@ -498,16 +498,16 @@ Run the full integration checklist from Step 11 of AGENTS.md. For each item, run
    Expected: no TypeScript errors, dev server on port 3000.
 
 3. Test discover endpoint:
-   curl -X POST http://localhost:8000/api/discover \
+  curl -X POST $PUBLIC_URL/api/discover \
      -H "Content-Type: application/json" \
      -d '{"topic":"Parasite (2019)","max_depth":2}'
    Expected: JSON with a session_id UUID.
 
-4. Test WebSocket: connect to ws://localhost:8000/ws/{session_id}
+4. Test WebSocket: connect to ws://$PUBLIC_URL/ws/{session_id}
    Expected: receives graph_delta message within 30 seconds.
    (TinyFish stub will return empty pages — Analyst will return empty delta — this is OK for now.)
 
-5. Open browser at http://localhost:3000
+5. Open browser at $PUBLIC_URL
    Expected: black home screen, "RABBIT HOLE" wordmark, animated placeholder, three demo pills.
 
 6. Click "Parasite (2019)" pill:
